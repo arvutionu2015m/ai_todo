@@ -134,5 +134,3 @@ curl -X GET http://127.0.0.1:8000/api/tasks/
 **📌 Arendaja:** *Arno Punnar - Arvutionu*  
 **📌 Repo:** *GitHub või Bitbucket link*  
 **📌 Kontakt:** *arnopps@gmail.com*  
-
-✅ **Nüüd on `ai_todo` projekt valmis ja dokumenteeritud!** 🚀
