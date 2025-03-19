@@ -1,0 +1,99 @@
+{% extends 'tasks/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-white text-center">
+                    <h4>✏️ Muuda ülesannet</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <!-- Ülesande pealkiri -->
+                        <div class="form-group">
+                            <label for="title">Ülesande nimi</label>
+                            <input type="text" class="form-control" id="title" name="title" required value="{{ task.title }}">
+                        </div>
+
+                        <!-- Tähtaja valik -->
+                        <div class="form-group">
+                            <label for="due_date">Tähtaeg</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date" required value="{{ task.due_date|date:'Y-m-d' }}">
+                        </div>
+
+                        <!-- Keerukus -->
+                        <div class="form-group">
+                            <label for="complexity">Keerukus (1–5)</label>
+                            <select class="form-control" id="complexity" name="complexity" required>
+                                {% for i in "12345" %}
+                                    <option value="{{ i }}" {% if task.complexity == i|add:"0" %}selected{% endif %}>{{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Sagedus -->
+                        <div class="form-group">
+                            <label for="frequency">Kui tihti ülesanne kordub? (1–7 päeva)</label>
+                            <select class="form-control" id="frequency" name="frequency" required>
+                                {% for i in "1234567" %}
+                                    <option value="{{ i }}" {% if task.frequency == i|add:"0" %}selected{% endif %}>{{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- AI soovitatud prioriteet -->
+                        <div class="form-group">
+                            <label for="priority">AI poolt arvutatud prioriteet</label>
+                            <input type="text" class="form-control" id="priority" name="priority" readonly value="{{ task.priority }}">
+                        </div>
+
+                        <!-- Nupud -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success">💾 Salvesta muudatused</button>
+                            <a href="{% url 'task_list' %}" class="btn btn-secondary">❌ Loobu</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI prioriteedi arvutamine reaalajas -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        function calculatePriority() {
+            let dueDate = new Date(document.getElementById('due_date').value);
+            let today = new Date();
+            let daysLeft = Math.max(1, Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24)));
+
+            let complexity = parseInt(document.getElementById('complexity').value);
+            let frequency = parseInt(document.getElementById('frequency').value);
+
+            let urgencyScore = Math.max(1, 10 - daysLeft);
+            let complexityScore = complexity * 2;
+            let frequencyScore = Math.max(1, 7 - frequency);
+
+            let totalScore = urgencyScore + complexityScore + frequencyScore;
+
+            let priority;
+            if (totalScore > 15) {
+                priority = "Kõrge";
+            } else if (totalScore > 8) {
+                priority = "Keskmine";
+            } else {
+                priority = "Madal";
+            }
+
+            document.getElementById('priority').value = priority;
+        }
+
+        document.getElementById('due_date').addEventListener('change', calculatePriority);
+        document.getElementById('complexity').addEventListener('change', calculatePriority);
+        document.getElementById('frequency').addEventListener('change', calculatePriority);
+    });
+</script>
+
+{% endblock %}

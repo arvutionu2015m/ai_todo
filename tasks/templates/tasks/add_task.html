@@ -1,0 +1,105 @@
+{% extends 'tasks/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4>Lisa uus ülesanne</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Ülesande pealkiri -->
+                        <div class="form-group">
+                            <label for="title">Ülesande nimi</label>
+                            <input type="text" class="form-control" id="title" name="title" required placeholder="Sisesta ülesande nimi">
+                        </div>
+
+                        <!-- Tähtaja valik -->
+                        <div class="form-group">
+                            <label for="due_date">Tähtaeg</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date" required>
+                        </div>
+
+                        <!-- Keerukuse tase (1–5) -->
+                        <div class="form-group">
+                            <label for="complexity">Keerukus (1–5)</label>
+                            <select class="form-control" id="complexity" name="complexity" required>
+                                <option value="1">1 - Väga lihtne</option>
+                                <option value="2">2 - Lihtne</option>
+                                <option value="3">3 - Keskmine</option>
+                                <option value="4">4 - Raske</option>
+                                <option value="5">5 - Väga raske</option>
+                            </select>
+                        </div>
+
+                        <!-- Sagedus (1–7 päeva) -->
+                        <div class="form-group">
+                            <label for="frequency">Kui tihti see ülesanne kordub? (1–7 päeva)</label>
+                            <select class="form-control" id="frequency" name="frequency" required>
+                                <option value="1">1 - Iga päev</option>
+                                <option value="2">2 - Iga 2 päeva</option>
+                                <option value="3">3 - Iga 3 päeva</option>
+                                <option value="4">4 - Iga 4 päeva</option>
+                                <option value="5">5 - Iga 5 päeva</option>
+                                <option value="6">6 - Iga 6 päeva</option>
+                                <option value="7">7 - Iga nädal</option>
+                            </select>
+                        </div>
+
+                        <!-- Tehisintellekti prioriteedi hinnang -->
+                        <div class="form-group">
+                            <label for="priority">Eeldatav prioriteet (AI poolt arvutatud)</label>
+                            <input type="text" class="form-control" id="priority" name="priority" readonly placeholder="Arvutatakse automaatselt">
+                        </div>
+
+                        <!-- Nupud -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success">Salvesta ülesanne</button>
+                            <a href="{% url 'task_list' %}" class="btn btn-secondary">Tühista</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI prioriteedi arvutuse skript -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        function calculatePriority() {
+            let dueDate = new Date(document.getElementById('due_date').value);
+            let today = new Date();
+            let daysLeft = Math.max(1, Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24)));
+
+            let complexity = parseInt(document.getElementById('complexity').value);
+            let frequency = parseInt(document.getElementById('frequency').value);
+
+            let urgencyScore = Math.max(1, 10 - daysLeft);
+            let complexityScore = complexity * 2;
+            let frequencyScore = Math.max(1, 7 - frequency);
+
+            let totalScore = urgencyScore + complexityScore + frequencyScore;
+
+            let priority;
+            if (totalScore > 15) {
+                priority = "Kõrge";
+            } else if (totalScore > 8) {
+                priority = "Keskmine";
+            } else {
+                priority = "Madal";
+            }
+
+            document.getElementById('priority').value = priority;
+        }
+
+        document.getElementById('due_date').addEventListener('change', calculatePriority);
+        document.getElementById('complexity').addEventListener('change', calculatePriority);
+        document.getElementById('frequency').addEventListener('change', calculatePriority);
+    });
+</script>
+
+{% endblock %}
